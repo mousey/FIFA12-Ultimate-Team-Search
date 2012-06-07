@@ -40,7 +40,7 @@ public function playerinfo($baseID){
 
 //returns the URL of the players image
 public function playerimage($baseID){
-	$EAPIMAGE = "http://cdn.content.easports.com/fifa/fltOnlineAssets/2010/fut/items/images/players/web/". $baseID .".png";
+	$EAPIMAGE = "http://cdn.content.easports.com/fifa/fltOnlineAssets/2012/fut/items/images/players/web/". $baseID .".png";
 	
 	return $EAPIMAGE;
 }
@@ -56,6 +56,20 @@ public function managerinfo($assetID){
 //returns the URL of the managers image
 public function managerimage($assetID){
 	$EAMIMAGE = "http://cdn.content.easports.com/fifa/fltOnlineAssets/2012/fut/items/images/players/web/heads_staff_". $assetID .".png";
+	
+	return $EAMIMAGE;
+}
+
+//returns the URL of the countries flag
+public function flagimage($assetID){
+	$EAMIMAGE = "http://cdn.content.easports.com/fifa/fltOnlineAssets/2012/fut/items/images/cardflags/web/". $assetID .".png";
+	
+	return $EAMIMAGE;
+}
+
+//returns the URL of the clubs badge
+public function clubimage($assetID){
+	$EAMIMAGE = "http://cdn.content.easports.com/fifa/fltOnlineAssets/2012/fut/items/images/clubbadges/web/s". $assetID .".png";
 	
 	return $EAMIMAGE;
 }
