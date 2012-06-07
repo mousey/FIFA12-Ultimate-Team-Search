@@ -13,7 +13,7 @@ class Connector {
 	private $hash;
 	
 	//initialise the class
-	public function __construct() {
+	public function __construct($user, $password, $hash) {
 		$this->user 	= $user;
 		$this->password = $password;
 		$this->hash 	= $hash;
@@ -149,7 +149,11 @@ class Connector {
 
 		unset($opts, $context, $EAVALIDATE, $hash, $http_response_header, $r, $s, $t);
 		
-		$returnitems = array('EASW_KEY' => $EASW_KEY, 'EASF_SESS' => $EASF_SESS, 'XSID' => $XSID, 'PHISHKEY' => $PHISHKE);
+		//Build the array of items to return
+		$returnitems = array('EASW_KEY' => $EASW_KEY, 'EASF_SESS' => $EASF_SESS, 'XSID' => $XSID, 'PHISHKEY' => $PHISHKEY);
+		
+		//Return the array
+		return $returnitems;
 	}
 }
 ?>
