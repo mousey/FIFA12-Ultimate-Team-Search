@@ -9,7 +9,7 @@ Having found [pmzipko's](http://pastebin.com/Zu5uDP7X) code to access the EA FIF
 * Searchor.php   = Searches the database for the players/staff requested.
 * Tradeor.php    = Bid on items and view Trade details.
 * Functionor.php = Random functions used to return player/staff info and other things.
-* Hashing.html   = A simple html page that returns your hash for the secret question used in Connector.php.
+* Eahashor.php   = Returns the hash value of the secret question answer supplied
 
 ## External Files
 * pmzipko = The original code for the FIFA 11 FUT that my code is based from.
