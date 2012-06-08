@@ -1,4 +1,12 @@
 <?php  
+/**
+* @llygoden
+* @author - Rob McGhee
+* @URL - www.robmcghee.com
+* @date - 08/06/12
+* @version - 1.0
+**/
+
 /* 	This is EAs implementation of the MD5 hashing algorithm
 *	It's identical to the standard MD5 algorithm apart from two changes
 *	Line 62 - uses 14 instead of 16 for the shift value
@@ -7,7 +15,7 @@
 *	or just errors when copy pasting by a programmer
 */
 
-function MD($string){ 
+function hash($string){ 
 	$a = "67452301"; 
 	$b = "EFCDAB89"; 
 	$c = "98BADCFE"; 
