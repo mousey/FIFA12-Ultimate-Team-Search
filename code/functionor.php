@@ -99,4 +99,33 @@ public function credits($EASW_KEY, $EASF_SESS, $PHISHKEY, $XSID){
 	return $EACREDITS;
 }
 
+//Return the type of card we have
+public function cardtype($rating, $rare){
+
+	$type = "Gold";
+	//Set the Colour based on the player rating
+	if ($rating <= 64){
+		$type = "Bronze";
+	}elseif ($rating <= 74){
+		$type = "Silver";
+	}
+	
+	//Set the Catagory based on the player rareity
+	switch($rare):
+		case 1:
+			$type .= " Shiny";
+			break;
+		case 3:
+			$type .= " InForm";
+			break;
+		case 5:
+			$type .= " TOTY";
+			break;
+		case 8:
+			$type .= " MOTM";
+	endswitch;
+	
+	//Return the Card Type
+	return $type;
+}
 ?>
