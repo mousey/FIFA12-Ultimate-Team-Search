@@ -3,8 +3,8 @@
 * @llygoden
 * @author - Rob McGhee
 * @URL - www.robmcghee.com
-* @date - 30/05/12
-* @version - 1.0
+* @date - 12/06/12
+* @version - 2.0
 **/
 class Tradeor {
 	
@@ -27,23 +27,28 @@ class Tradeor {
 		//URL to bid on trade items
 		$bidurl = "https://ut.fut.ea.com/ut/game/ut12/trade/". $trade ."/bid";
 		
-		//HTML Headers to send to the bid URL, includes 3 keys and the XSID
-		$opts = array(
-			'http'=>array(
-			'method'=>"POST",
-			'header'=>"Content-Type: application/json\r\n".
-					  "Cookie: ".$this->EASW_KEY."; ".$this->EASF_SESS ."; ".$this->PHISHKEY."\r\n".
-					  "x-http-method-override:PUT\r\n".
-					  $this->XSID,
-			'content'=>'{ "bid": '. $value .'}'
-			)
+		//JSON data to send as a POST item
+		$data = array("bid" => $value);
+		$data_string = json_encode($data); 
+		//Set the cookie data
+		$cookie_string = $this->EASW_KEY."; ".$this->EASF_SESS ."; ".$this->PHISHKEY;                                                                       
+		//Setup cURL HTTP request
+		$ch = curl_init($bidurl);                                                                      
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                                                                                     
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+		curl_setopt($ch, CURLOPT_COOKIE, $cookie_string); 
+		curl_setopt($ch, CURLOPT_HEADER, false);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
+			'Content-Type: application/json',                                                                                
+			'x-http-method-override: PUT',
+			$this->XSID)                                                                       
 		);
 		
-		$context = stream_context_create($opts);
 		//Contains the JSON file returned from EA
-		$EABID = file_get_contents($bidurl, false, $context);
+		$EABID = curl_exec($ch);
+		curl_close($ch);
 		
-		unset ($opts, $context, $trade, $bidurl, $value);
+		unset ($ch, $cookie_string, $data_string, $data, $trade, $bidurl, $value);
 		
 		return $EABID;
 	}
@@ -51,23 +56,26 @@ class Tradeor {
 	public function trade($trade){
 		//URL to view trade details
 		$tradeurl = "https://ut.fut.ea.com/ut/game/ut12/trade?tradeIds=". $trade;
-		
-		//HTML Headers to send to the trade URL, includes 3 keys and the XSID
-		$opts = array(
-			'http'=>array(
-			'method'=>"POST",
-			'header'=>"Content-Type: application/json\r\n".
-					  "Cookie: ".$this->EASW_KEY."; ".$this->EASF_SESS ."; ".$this->PHISHKEY."\r\n".
-					  "x-http-method-override:GET\r\n".
-					  $this->XSID,
-		  )
+
+		//Set the cookie data
+		$cookie_string = $this->EASW_KEY."; ".$this->EASF_SESS ."; ".$this->PHISHKEY;                                                                       
+		//Setup cURL HTTP request
+		$ch = curl_init($tradeurl);                                                                      
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                                                                                     
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+		curl_setopt($ch, CURLOPT_COOKIE, $cookie_string); 
+		curl_setopt($ch, CURLOPT_HEADER, false);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
+			'Content-Type: application/json',                                                                                
+			'x-http-method-override: GET',
+			$this->XSID)                                                                       
 		);
-
-		$context = stream_context_create($opts);
+		
 		//Contains the JSON file returned from EA
-		$EATRADE = file_get_contents($tradeurl, false, $context);
-
-		unset($opts, $context, $trade, $tradeurl);
+		$EATRADE = curl_exec($ch);
+		curl_close($ch);
+		
+		unset($ch, $cookie_string $trade, $tradeurl);
 		
 		return $EATRADE;
 	}

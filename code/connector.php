@@ -3,8 +3,8 @@
 * @llygoden
 * @author - Rob McGhee
 * @URL - www.robmcghee.com
-* @date - 28/05/12
-* @version - 1.0
+* @date - 12/06/12
+* @version - 2.0
 **/
 class Connector {
 	
@@ -37,22 +37,26 @@ class Connector {
 		$account= "http://www.ea.com/p/fut/a/card/l/en_GB/s/p/ut/game/ut12/user/accountinfo?timestamp=". $time;
 		$auth	= "http://www.ea.com/p/fut/a/card/l/en_GB/s/p/ut/auth";
 		$quest	= "http://www.ea.com/p/fut/a/card/l/en_GB/s/p/ut/game/ut12/phishing/validate";
+		
+		//POST data to send
+		$data_string = "email=".$this->user."&password=".$this->password;
+		//Setup cURL HTTP request
+		$ch = curl_init($login);                                                                      
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);                                                                  
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+		curl_setopt($ch, CURLOPT_HEADER, true);                                                                      
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
+			'Content-Type: application/x-www-form-urlencoded',                                                                                
+			'Content-Length: ' . strlen($data_string))                                                                       
+		);                                                                                                                   
 
-		//HTML Headers to send to the login URL, includes Username and Password
-		$opts = array(
-		  'http'=>array(
-			'method'=>"POST",
-			'header'=>"Content-Type: application/x-www-form-urlencoded",
-			'content'=>"email=".$this->user."&password=".$this->password
-		  )
-		);
-
-		$context = stream_context_create($opts);
-		//Contains the file returned from EA
-		$EALOGIN = file_get_contents($login, false, $context);
-		//The Headers returned from EA
-		$r = $http_response_header;
-
+		$response = curl_exec($ch);
+		curl_close($ch);
+		//Split the HEADERS and BODY 
+		list($h, $EALOGIN) = explode("\r\n\r\n", $response, 2);
+		$r = explode("\r\n", $h);
+		
 		//EASW Key
 		$s = explode(":", $r[7]);
 		$t = explode(";", $s[1]);
@@ -72,23 +76,22 @@ class Connector {
 		//echo "NUC: ".$NUC."<br />";
 
 		//unset the variables used in this section as we will use them again
-		unset($opts, $context, $EALOGIN, $http_response_header, $r, $s, $t, $m, $n, $a, $b);
+		unset($EALOGIN, $ch, $r, $s, $t, $m, $n, $a, $b, $data_string, $response);
 
-		//HTML Headers to send to the account info URL, includes the two keys from above
-		$opts = array(
-		  'http'=>array(
-			'method'=>"GET",
-			'header'=>"Content-Type: application/x-www-form-urlencoded\r\n".
-						"Cookie: ".$EASW_KEY.";".$EASF_SESS
-		  )
-		);
+		//Cookie Data includes the two keys from above
+		$cookie_string = $EASW_KEY."; ".$EASF_SESS;
+		//Setup cURL HTTP request
+		$ch = curl_init($account);                                                                                                                                      
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+		curl_setopt($ch, CURLOPT_HEADER, false);
+		curl_setopt($ch, CURLOPT_COOKIE, $cookie_string);                                                                      
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
+			'Content-Type: application/x-www-form-urlencoded')                                                                   
+		);                                                                                                                   
 
-		$context = stream_context_create($opts);
-		//Contains the file returned from EA
-		$EAACCOUNT = file_get_contents($account, false, $context);
-		//The Headers returned from EA
-		//$r = $http_response_header;
-
+		$EAACCOUNT = curl_exec($ch);
+		curl_close($ch);
+		
 		//Get personaID and Platform
 		$d = json_decode($EAACCOUNT);
 		$personaID = $d->userAccountInfo->personas[0]->personaId;
@@ -99,47 +102,62 @@ class Connector {
 		//echo "platform: " .$platform. "<br />";
 
 		//unset the variables used in this section as we will use them again
-		unset($opts, $context, $EAACCOUNT, $http_response_header, $d);
-
-		//HTML Headers to send to the auth URL, includes Both Keys and General User Info
-		$opts = array(
-		  'http'=>array(
-			'method'=>"POST",
-			'header'=>"Content-Type: application/json\r\n".
-						"Cookie: ".$EASW_KEY."; ".$EASF_SESS,
-			'content'=>'{ "isReadOnly": false, "sku": "499A0001", "clientVersion": 3, "nuc": '.$NUC.', "nucleusPersonaId": '.$personaID.', "nucleusPersonaDisplayName": "'.$dispname.'", "nucleusPersonaPlatform": "'.$platform.'", "locale": "'.$locale.'", "method": "idm", "priorityLevel":4, "identification": { "EASW-Token": "" } }'
-		  )
+		unset($EAACCOUNT, $d, $ch, $cookie_string);
+		
+		//Cookie Data includes the two keys from above
+		$cookie_string = $EASW_KEY."; ".$EASF_SESS;
+		//JSON data to send as a POST item
+		$data = array("isReadOnly" => false, "sku" => "499A0001", "clientVersion" => 3, "nuc" => $NUC, "nucleusPersonaId" => $personaID, "nucleusPersonaDisplayName" => $dispname, "nucleusPersonaPlatform" => $platform, "locale" => $locale, "method" => "idm", "priorityLevel" => 4, "identification" => array( "EASW-Token" => "" ));
+		$data_string = json_encode($data);                                                                          
+		//Setup cURL HTTP request
+		$ch = curl_init($auth);                                                                      
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);                                                                 
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+		curl_setopt($ch, CURLOPT_COOKIE, $cookie_string); 
+		curl_setopt($ch, CURLOPT_HEADER, true);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
+			'Content-Type: application/json',                                                                                
+			'Content-Length: ' . strlen($data_string))                                                                       
 		);
 
-		$context = stream_context_create($opts);
-		//Contains the file returned from EA
-		$EAAUTH = file_get_contents($auth, false, $context);
-		//The Headers returned from EA
-		$r = $http_response_header;
+		$EAAUTH = curl_exec($ch);
+		curl_close($ch);
+		
+		//Split the returned HEADERs into an Array
+		$r = explode("\r\n", $EAAUTH);
+
 		//User Session ID
 		$XSID = $r[4];
 		//Display the User Session ID
 		//echo $XSID. "<br />";
 
 		//unset the variables used in this section as we will use them again
-		unset($opts, $context, $EAAUTH, $http_response_header, $r, $NUC, $personaID, $platform, $dispname, $locale);
-
-		//HTML Headers to send to the Validation URL, includes Both Keys, Session ID and our Question Hash
-		$opts = array(
-		  'http'=>array(
-			'method'=>"POST",
-			'header'=>"Content-Type: application/x-www-form-urlencoded\r\n".
-					  "Cookie: ".$EASW_KEY."; ".$EASF_SESS ."\r\n".
-					  $XSID,
-			'content'=>"answer=".$this->hash
-		  )
+		unset($EAAUTH, $ch, $cookie_string, $data, $data_string, $r, $NUC, $personaID, $platform, $dispname, $locale);
+		
+		//Cookie Data includes the two keys from above
+		$cookie_string = $EASW_KEY."; ".$EASF_SESS;
+		//POST data to send
+		$data_string = "answer=".$this->hash;    
+		//Setup cURL HTTP request
+		$ch = curl_init($quest);                                                                      
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);                                                                 
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+		curl_setopt($ch, CURLOPT_COOKIE, $cookie_string); 
+		curl_setopt($ch, CURLOPT_HEADER, true);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
+			'Content-Type: application/x-www-form-urlencoded',                                                                                
+			'Content-Length: ' . strlen($data_string),
+			$this->XSID)                                                                       
 		);
 
-		$context = stream_context_create($opts);
-		//Contains the file returned from EA
-		$EAVALIDATE = file_get_contents($quest, false, $context);
-		//The Headers returned from EA
-		$r = $http_response_header;
+		$EAVALIDATE = curl_exec($ch);
+		curl_close($ch);
+		
+		//Split the returned HEADERs into an Array
+		$r = explode("\r\n", $EAVALIDATE);
+
 		//Phishing Key
 		$s = explode(":", $r[7]);
 		$t = explode(";", $s[1]);
@@ -147,7 +165,7 @@ class Connector {
 		//Display the Phishing Key 
 		//echo $PHISHKEY. "<br />";
 
-		unset($opts, $context, $EAVALIDATE, $hash, $http_response_header, $r, $s, $t);
+		unset($EAVALIDATE, $ch, $cookie_string, $data_string, $r, $s, $t);
 		
 		//Build the array of items to return
 		$returnitems = array('EASW_KEY' => $EASW_KEY, 'EASF_SESS' => $EASF_SESS, 'XSID' => $XSID, 'PHISHKEY' => $PHISHKEY);

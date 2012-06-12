@@ -3,8 +3,8 @@
 * @llygoden
 * @author - Rob McGhee
 * @URL - www.robmcghee.com
-* @date - 29/05/12
-* @version - 1.0
+* @date - 12/06/12
+* @version - 2.0
 **/
 class Searchor {
 	
@@ -72,24 +72,28 @@ class Searchor {
 			$searchstring .= "&maxb=$maxBid";
 		}
 		
-		//HTML Headers to send to the search URL, includes 3 keys and the XSID
-		$opts = array(
-			'http'=>array(
-			'method'=>"POST",
-			'header'=>"Content-Type: application/json\r\n".
-					  "Cookie: ".$this->EASW_KEY."; ".$this->EASF_SESS ."; ".$this->PHISHKEY."\r\n".
-					  "x-http-method-override:GET\r\n".
-					  $this->XSID
-			)
-		);
 		
-		$context = stream_context_create($opts);
 		//create the final search string
 		$search = $searchurl . "type=player&start=$start&num=$count" . $searchstring;
-		//Contains the JSON file returned from EA
-		$EAPSEARCH = file_get_contents($search, false, $context);
+		//Set the cookie data
+		$cookie_string = $this->EASW_KEY."; ".$this->EASF_SESS ."; ".$this->PHISHKEY;                                                                       
+		//Setup cURL HTTP request
+		$ch = curl_init($search);                                                                      
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                                                                                     
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+		curl_setopt($ch, CURLOPT_COOKIE, $cookie_string); 
+		curl_setopt($ch, CURLOPT_HEADER, false);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
+			'Content-Type: application/json',                                                                                
+			'x-http-method-override: GET',
+			$this->XSID)                                                                       
+		);
 		
-		unset ($start,$count,$level,$formation,$position,$nationality,$league,$team,$minBid,$maxBid,$minBIN,$maxBIN, $opts, $context, $search, $searchstring);
+		//Contains the JSON file returned from EA
+		$EAPSEARCH = curl_exec($ch);
+		curl_close($ch);
+		
+		unset ($start,$count,$level,$formation,$position,$nationality,$league,$team,$minBid,$maxBid,$minBIN,$maxBIN, $ch, $cookie_string, $search, $searchstring);
 		
 		return $EAPSEARCH;
 	}
@@ -125,24 +129,28 @@ class Searchor {
 			$searchstring .= "&maxb=$maxBid";
 		}
 		
-		//HTML Headers to send to the search URL, includes 3 keys and the XSID
-		$opts = array(
-			'http'=>array(
-			'method'=>"POST",
-			'header'=>"Content-Type: application/json\r\n".
-					  "Cookie: ".$this->EASW_KEY."; ".$this->EASF_SESS ."; ".$this->PHISHKEY."\r\n".
-					  "x-http-method-override:GET\r\n".
-					  $this->XSID
-			)
-		);
 		
-		$context = stream_context_create($opts);
 		//create the final search string
 		$search = $searchurl . "type=staff&blank=10&start=$start&num=$count" . $searchstring;
-		//Contains the JSON file returned from EA
-		$EASSEARCH = file_get_contents($search, false, $context);
+		//Set the cookie data
+		$cookie_string = $this->EASW_KEY."; ".$this->EASF_SESS ."; ".$this->PHISHKEY;                                                                       
+		//Setup cURL HTTP request
+		$ch = curl_init($search);                                                                      
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                                                                                     
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+		curl_setopt($ch, CURLOPT_COOKIE, $cookie_string); 
+		curl_setopt($ch, CURLOPT_HEADER, false);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
+			'Content-Type: application/json',                                                                                
+			'x-http-method-override: GET',
+			$this->XSID)                                                                       
+		);
 		
-		unset ($start,$count,$level,$cat,$minBid,$maxBid,$minBIN,$maxBIN, $opts, $context, $search, $searchstring);
+		//Contains the JSON file returned from EA
+		$EASSEARCH = curl_exec($ch);
+		curl_close($ch);
+		
+		unset ($start,$count,$level,$cat,$minBid,$maxBid,$minBIN,$maxBIN, $ch, $cookie_string, $search, $searchstring);
 		
 		return $EASSEARCH;
 	}

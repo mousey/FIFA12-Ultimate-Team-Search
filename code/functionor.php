@@ -3,8 +3,8 @@
 * @llygoden
 * @author - Rob McGhee
 * @URL - www.robmcghee.com
-* @date - 30/05/12
-* @version - 1.0
+* @date - 12/06/12
+* @version - 2.0
 **/
 
 //returns the base ID of a player from the resource ID provided
@@ -79,22 +79,25 @@ public function credits($EASW_KEY, $EASF_SESS, $PHISHKEY, $XSID){
 	//URL to retrieve credits
 	$creditsurl = "https://ut.fut.ea.com/ut/game/ut12/user/credits";
 	
-	//HTML Headers to send to the credits URL, includes 3 keys and the XSID
-	$opts = array(
-		'http'=>array(
-		'method'=>"POST",
-		'header'=>"Content-Type: application/json\r\n".
-				  "Cookie: ".$EASW_KEY."; ".$EASF_SESS ."; ".$PHISHKEY."\r\n".
-				  "x-http-method-override:GET\r\n".
-				  $XSID
-		)
+	//Set the cookie data
+	$cookie_string = $EASW_KEY."; ".$EASF_SESS ."; ".$PHISHKEY;                                                                       
+	//Setup cURL HTTP request
+	$ch = curl_init($creditsurl);                                                                      
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                                                                                     
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+	curl_setopt($ch, CURLOPT_COOKIE, $cookie_string); 
+	curl_setopt($ch, CURLOPT_HEADER, false);
+	curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
+		'Content-Type: application/json',                                                                                
+		'x-http-method-override: GET',
+		$XSID)                                                                       
 	);
 	
-	$context = stream_context_create($opts);
 	//Contains the JSON file returned from EA
-	$EACREDITS = file_get_contents($creditsurl, false, $context);
+	$EACREDITS = curl_exec($ch);
+	curl_close($ch);
 	
-	unset ($opts, $context, $trade, $tradeurl, $value);
+	unset ($ch, $cookie_string, $trade, $tradeurl, $value);
 	
 	return $EACREDITS;
 }
