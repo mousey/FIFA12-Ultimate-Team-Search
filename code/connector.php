@@ -149,7 +149,7 @@ class Connector {
 		curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
 			'Content-Type: application/x-www-form-urlencoded',                                                                                
 			'Content-Length: ' . strlen($data_string),
-			$this->XSID)                                                                       
+			$XSID)                                                                       
 		);
 
 		$EAVALIDATE = curl_exec($ch);
